@@ -3,8 +3,11 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using Unity.VisualScripting;
+using Photon.Pun;
+using Photon.Realtime;
 
-public class RaceManager : MonoBehaviour
+public class RaceManager : MonoBehaviourPunCallbacks
 {
     public TMP_Text timerText;
     public TMP_Text countdownText;
@@ -24,11 +27,59 @@ public class RaceManager : MonoBehaviour
     private bool raceFinished = false;
     private bool countdownActive = false;
 
+    // ExitGames.Client.Photon.Hashtable playerProperties = new ExitGames.Client.Photon.Hashtable();
+
     void Start()
     {
+
+        // timerText = transform.Find("Canvas/TimerText").GetComponent<TMP_Text>();
+        GameObject canvasObject = GameObject.Find("Canvas");
+
+        if (canvasObject != null)
+        {
+            Transform timerTextTransform = canvasObject.transform.Find("TimerText");
+
+            if (timerTextTransform != null)
+            {
+                timerText = timerTextTransform.GetComponent<TMP_Text>();
+            }
+
+            Transform countdownTextTransform = canvasObject.transform.Find("CountdownText");
+
+            if (countdownTextTransform != null)
+            {
+                countdownText = countdownTextTransform.GetComponent<TMP_Text>();
+            }
+
+            Transform fadeImageTransform = canvasObject.transform.Find("FadeImage");
+
+            if (fadeImageTransform != null)
+            {
+                fadeImage = fadeImageTransform.GetComponent<Image>();
+            }
+
+            Transform resultsPanelTransform = canvasObject.transform.Find("ResultsPanel");
+
+            if (resultsPanelTransform != null)
+            {
+                resultsPanel = resultsPanelTransform.gameObject;
+            }
+
+            Transform resultsTextTransform = canvasObject.transform.Find("ResultsPanel/ResultText");
+
+            if (resultsTextTransform != null)
+            {
+                resultsText = resultsTextTransform.GetComponent<TMP_Text>();
+            }
+        }
+
+        finishLine = GameObject.Find("FinishLine");
+        //finishLine = GameObject.Find("FinishLine").GetComponent<GameObject>();
+
         audioSource = GetComponent<AudioSource>();
         resultsPanel.SetActive(false);  // Hide results panel at the start
         StartCoroutine(StartRace());
+
     }
 
     void Update()
@@ -103,22 +154,25 @@ public class RaceManager : MonoBehaviour
         {
             raceFinished = true;
             timerText.color = Color.green;
-            DisplayResults();
+            float raceTime = Time.time - startTime;
+            ExitGames.Client.Photon.Hashtable raceTimeProperty = new ExitGames.Client.Photon.Hashtable {
+                { "RaceTime", raceTime },
+                { "HasFinished", true }
+            };
+            Debug.Log("Setting RaceTime property: " + raceTime);
+
+            PhotonNetwork.LocalPlayer.SetCustomProperties(raceTimeProperty);
+
+            // Call CheckResults with a delay to ensure properties are updated
+            StartCoroutine(CallCheckResultsWithDelay());
+
         }
     }
-
-    void DisplayResults()
+    private IEnumerator CallCheckResultsWithDelay()
     {
-        float raceTime = Time.time - startTime;
-        string minutes = Mathf.Floor(raceTime / 60).ToString("00");
-        string seconds = (raceTime % 60).ToString("00.00");
-        resultsText.text = "Your Time: " + minutes + ":" + seconds;
-
-        audioSource.Stop();  // Stop all audio
-        resultsPanel.SetActive(true);  // Show results panel
-        Time.timeScale = 0f;  // Stop the gameplay
-
-        FadeOut(); // Fade out effect when showing results
+        // Wait for a short time to ensure properties are updated
+        yield return new WaitForSeconds(0.5f);
+        RaceResults.Instance.CheckResults();
     }
 
     void FadeOut()
@@ -135,7 +189,6 @@ public class RaceManager : MonoBehaviour
         if (fadeImage != null)
         {
             fadeImage.CrossFadeAlpha(1f, 2f, false); // Fade in effect over 2 seconds
-        }
+        }
     }
 }
-

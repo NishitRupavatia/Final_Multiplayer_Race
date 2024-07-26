@@ -14,6 +14,18 @@ public class CarNitrousSystem : MonoBehaviour
 
     void Start()
     {
+        GameObject canvasObject = GameObject.Find("Canvas");
+
+        if (canvasObject != null)
+        {
+            Transform nitrousBarFillTransform = canvasObject.transform.Find("NitrousBarBackground/NitrousBarFill");
+
+            if (nitrousBarFillTransform != null)
+            {
+                nitrousBarFill = nitrousBarFillTransform.GetComponent<RectTransform>();
+            }
+        }
+
         carRigidbody = GetComponent<Rigidbody>();
         currentNitrous = 0f;
         originalWidth = nitrousBarFill.sizeDelta.x;

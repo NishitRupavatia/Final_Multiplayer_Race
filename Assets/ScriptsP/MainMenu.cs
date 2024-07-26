@@ -7,12 +7,12 @@ public class MainMenu : MonoBehaviour
 {
     public void ButtonStart()
     {
-        SceneManager.LoadScene(2);
+        SceneManager.LoadScene("Loading");
     }
 
     public void ButtonCredit()
     {
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene("Credits");
     }
 
     public void ButtonQuit()

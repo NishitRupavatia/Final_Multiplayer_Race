@@ -144,6 +144,6 @@ public class LobbyManage : MonoBehaviourPunCallbacks
 
     public void OnClickPlayButton()
     {
-        PhotonNetwork.LoadLevel("ActualRace");
+        PhotonNetwork.LoadLevel("SampleScene");
     }
 }
